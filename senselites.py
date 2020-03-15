@@ -16,6 +16,26 @@ class ColorConstant:
     def __repr__(self):
         return "Constant " + str(self.constant_col)
 
+class ColorChannelConstant:
+    """one colour per channel"""
+    constant_cols = []
+    def __init__(self, rand_cols):
+        for i in range(4):
+            self.constant_cols.append(rand_cols.get(None))
+
+    def get(self, coord):
+        return self.constant_cols[coord[0]-1]
+
+class ColorChequerboard:
+    """alternating"""
+    cols = []
+    def __init__(self, rand_cols):
+        self.cols = [rand_cols.get(None), rand_cols.get(None)]
+
+    def get(self, coord):
+        index = (coord[0]+coord[1])%2
+        return self.cols[index]
+
 class ColorRandom:
     """avoids repetition"""
     prev_pattern = -1
@@ -164,11 +184,13 @@ def run():
     colors = [
         ColorRandom,
         lambda: ColorConstant(rand_cols.get(None)),
+        lambda: ColorChannelConstant(rand_cols),
         lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorGlobalFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorPixelFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorHorizCenterFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorRadialFade(rand_cols.get(None), rand_cols.get(None)),
+        lambda: ColorChequerboard(rand_cols),
     ]
     last_col_template = None
     last_pattern_template = None
@@ -183,8 +205,6 @@ def run():
         if color_template == last_col_template:
             continue
         color = color_template()
-
-        print(color)
 
         for update in pattern:
             c = color.get(update)
