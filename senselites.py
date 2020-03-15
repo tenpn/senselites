@@ -39,7 +39,7 @@ class ColorChequerboard:
 class ColorRandom:
     """avoids repetition"""
     prev_pattern = -1
-    values = [127, 200, 255]
+    values = [50, 100, 150]
     patterns = [[1,1,0], [1,0,1], [0,1,1], [0,0,1], [0,1,0], [1,0,0]]
 
     def get(self, coord):
