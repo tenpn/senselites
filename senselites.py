@@ -201,7 +201,8 @@ def run():
             continue
         pattern = pattern_template() if random() < 0.5 else pattern_reverse(pattern_template())
 
-        color_template = black if random() < 0.4 and last_col_template != None else choice(colors)
+        color_template = black if (random() < 0.4 and last_col_template is not None) \
+            else choice(colors)
         if color_template == last_col_template:
             continue
         color = color_template()
