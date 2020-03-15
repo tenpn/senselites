@@ -31,10 +31,13 @@ class ColorRandom:
         c = [pattern[0]*choice(self.values), pattern[1]*choice(self.values), pattern[2]*choice(self.values)]
         return c
 
+def lerp_i(a, lhs, rhs):
+    return int((rhs-lhs)*a + lhs)
+    
 def lerp_cols(a, lhs, rhs):
     """blends between lhs and rhs"""
-    return [int((rhs[0]-lhs[0])*a + lhs[0]), int((rhs[1]-lhs[1])*a + lhs[1]), int((rhs[2]-lhs[2])*a + lhs[2])]
-    
+    return [lerp_i(a, lhs[0], rhs[0]), lerp_i(a, lhs[1], rhs[1]), lerp_i(a, lhs[2], rhs[2])]
+
 class ColorChannelFade:
     """fades between colours on one channel"""
     start_col = [0,0,0]
@@ -44,8 +47,41 @@ class ColorChannelFade:
         self.end_col = end_col
 
     def get(self, coord):
-        alpha = coord[1]/15
+        alpha = coord[1]/15.0
         return lerp_cols(alpha, self.start_col, self.end_col)
+    
+    def __repr__(self):
+        return "Channel Fade " + str(self.start_col) + " > " + str(self.end_col)
+    
+class ColorGlobalFade:
+    """fades across all pixels, chained end-to-end"""
+    start_col = [0,0,0]
+    end_col = [1,1,1]
+    def __init__(self, start_col, end_col):
+        self.start_col = start_col
+        self.end_col = end_col
+
+    def get(self, coord):
+        alpha = ((coord[0]-1)*16+coord[1])/63.0
+        return lerp_cols(alpha, self.start_col, self.end_col)
+
+    def __repr__(self):
+        return "Global Fade " + str(self.start_col) + " > " + str(self.end_col)
+    
+class ColorPixelFade:
+    """fades between pixels on the same row"""
+    start_col = [0,0,0]
+    end_col = [1,1,1]
+    def __init__(self, start_col, end_col):
+        self.start_col = start_col
+        self.end_col = end_col
+
+    def get(self, coord):
+        alpha = (coord[0]-1)/3.0
+        return lerp_cols(alpha, self.start_col, self.end_col)
+    
+    def __repr__(self):
+        return "Pixel Fade " + str(self.start_col) + " > " + str(self.end_col)
     
 def pattern_race():
     fills = [0,0,0,0]
@@ -93,12 +129,12 @@ def run():
     
     patterns = [pattern_floodfill, pattern_scatter, pattern_race]
     black = lambda: ColorConstant([0,0,0])
-    colors = [black,
-              black,
-              black,
-              ColorRandom,
+    colors = [ColorRandom,
               lambda: ColorConstant(rand_cols.get(None)),
-              lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None))]
+              lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None)),
+              lambda: ColorGlobalFade(rand_cols.get(None), rand_cols.get(None)),
+              lambda: ColorPixelFade(rand_cols.get(None), rand_cols.get(None)),
+    ]
     last_col_template = None
     last_pattern_template = None
     
@@ -108,7 +144,7 @@ def run():
             continue
         pattern = pattern_template() if random() < 0.5 else pattern_reverse(pattern_template())
 
-        color_template = choice(colors)
+        color_template = black if random() < 0.4 else choice(colors)
         if color_template == last_col_template:
             continue
         color = color_template()
