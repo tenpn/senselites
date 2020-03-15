@@ -12,6 +12,9 @@ class ColorConstant:
     def get(self, coord):
         return self.constant_col
 
+    def __repr__(self):
+        return "Constant " + str(self.constant_col)
+
 class ColorRandom:
     """avoids repetition"""
     prev_pattern = -1
@@ -89,22 +92,33 @@ def run():
     rand_cols = ColorRandom()
     
     patterns = [pattern_floodfill, pattern_scatter, pattern_race]
-    colors = [ColorRandom, lambda: ColorConstant(rand_cols.get(None))]
+    black = lambda: ColorConstant([0,0,0])
+    colors = [black,
+              black,
+              black,
+              ColorRandom,
+              lambda: ColorConstant(rand_cols.get(None)),
+              lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None))]
+    last_col_template = None
+    last_pattern_template = None
     
     while True:
-        pattern = choice(patterns)
-        color = choice(colors)()
+        pattern_template = choice(patterns)
+        if pattern_template == last_pattern_template:
+            continue
+        pattern = pattern_template() if random() < 0.5 else pattern_reverse(pattern_template())
 
-        for update in pattern():
+        color_template = choice(colors)
+        if color_template == last_col_template:
+            continue
+        color = color_template()
+
+        for update in pattern:
             c = color.get(update)
             mote.set_pixel(update[0], update[1], c[0], c[1], c[2])
             mote.show()
             time.sleep(0.05)
-        if random() < 0.33:
-            continue
-        for update in pattern_reverse(pattern()):
-            mote.set_pixel(update[0], update[1], 0, 0, 0)
-            mote.show()
-            time.sleep(0.05)
 
+        last_col_template = color_template
+        last_pattern_template = pattern_template
 run()
