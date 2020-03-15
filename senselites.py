@@ -1,6 +1,7 @@
 """runs a sensory garden"""
 from random import randrange, choice, shuffle, random
 import time
+from math import sqrt
 from mote import Mote
 
 class ColorConstant:
@@ -31,7 +32,14 @@ class ColorRandom:
         c = [pattern[0]*choice(self.values), pattern[1]*choice(self.values), pattern[2]*choice(self.values)]
         return c
 
+def remap(v, in_range, out_range):
+    """rescales a value from one range to another"""
+    in_v_norm = (in_range[1]-v)/(in_range[1]-in_range[0])
+    clamped_norm = min(1, max(0, in_v_norm))
+    return out_range[0] + clamped_norm*(out_range[1] - out_range[0])
+    
 def lerp_i(a, lhs, rhs):
+    """integer lerp"""
     return int((rhs-lhs)*a + lhs)
     
 def lerp_cols(a, lhs, rhs):
@@ -66,6 +74,19 @@ class ColorPixelFade(ColorFade):
     """fades between pixels on the same row"""
     def get_alpha(self, coord):
         return (coord[0]-1)/3.0
+
+class ColorHorizCenterFade(ColorFade):
+    """1 in the middle, 0 at the edges"""
+    def get_alpha(self, coord):
+        return abs(8-coord[1])/8.0
+    
+class ColorRadialFade(ColorFade):
+    """circular"""
+    def get_alpha(self, coord):
+        norm_to_center = [abs(1.5-(coord[0]-1))/1.5, abs(7.5-coord[1])/7.5]
+        dist_to_center = sqrt(norm_to_center[0]*norm_to_center[0] + norm_to_center[1]*norm_to_center[1])
+        alpha = remap(dist_to_center, [0.1, 1.2], [0, 1])
+        return alpha
     
 def pattern_race():
     fills = [0,0,0,0]
@@ -146,6 +167,8 @@ def run():
         lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorGlobalFade(rand_cols.get(None), rand_cols.get(None)),
         lambda: ColorPixelFade(rand_cols.get(None), rand_cols.get(None)),
+        lambda: ColorHorizCenterFade(rand_cols.get(None), rand_cols.get(None)),
+        lambda: ColorRadialFade(rand_cols.get(None), rand_cols.get(None)),
     ]
     last_col_template = None
     last_pattern_template = None
