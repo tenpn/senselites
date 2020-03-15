@@ -28,6 +28,22 @@ class ColorRandom:
         c = [pattern[0]*choice(self.values), pattern[1]*choice(self.values), pattern[2]*choice(self.values)]
         return c
 
+def lerp_cols(a, lhs, rhs):
+    """blends between lhs and rhs"""
+    return [int((rhs[0]-lhs[0])*a + lhs[0]), int((rhs[1]-lhs[1])*a + lhs[1]), int((rhs[2]-lhs[2])*a + lhs[2])]
+    
+class ColorChannelFade:
+    """fades between colours on one channel"""
+    start_col = [0,0,0]
+    end_col = [1,1,1]
+    def __init__(self, start_col, end_col):
+        self.start_col = start_col
+        self.end_col = end_col
+
+    def get(self, coord):
+        alpha = coord[1]/15
+        return lerp_cols(alpha, self.start_col, self.end_col)
+    
 def pattern_race():
     fills = [0,0,0,0]
     completed = 0;
