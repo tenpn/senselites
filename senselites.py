@@ -201,7 +201,7 @@ def run():
             continue
         pattern = pattern_template() if random() < 0.5 else pattern_reverse(pattern_template())
 
-        color_template = black if (random() < 0.4 and last_col_template is not None) \
+        color_template = black if (random() < 0.33 and last_col_template is not None) \
             else choice(colors)
         if color_template == last_col_template:
             continue
@@ -209,9 +209,12 @@ def run():
 
         for update in pattern:
             c = color.get(update)
-            mote.set_pixel(update[0], update[1], c[0], c[1], c[2])
-            mote.show()
-            time.sleep(0.05)
+            prev_c = mote.get_pixel(update[0], update[1])
+            for step in range(8):
+                step_c = lerp_cols(step/7.0, prev_c, c)
+                mote.set_pixel(update[0], update[1], step_c[0], step_c[1], step_c[2])
+                mote.show()
+                time.sleep(0.03)
 
         last_col_template = color_template
         last_pattern_template = pattern_template
