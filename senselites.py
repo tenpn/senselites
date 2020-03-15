@@ -110,6 +110,26 @@ def pattern_floodfill():
         for pixel in range(16):
             yield (channel, pixel)
 
+def pattern_horizflood():
+    """fills by pixel and then by channel"""
+    for pixel in range(16):
+        for channel in range(1,5):
+            yield (channel, pixel)
+
+def pattern_horizsnakeflood():
+    """zipping back and forth"""
+    for pixel in range(16):
+        snakedir = range(1,5) if (pixel%2)==0 else range(4,0,-1)
+        for channel in snakedir:
+            yield (channel, pixel)
+            
+def pattern_snakeflood():
+    """fills each channel in order"""
+    for channel in range(1,5):
+        snakedir = range(16) if (channel%2)==0 else range(15,-1,-1)
+        for pixel in snakedir:
+            yield (channel, pixel)
+            
 def pattern_reverse(other_pattern):
     """sets each pixel black in reverse order of other_pattern"""
     other_reversed = reversed(list(other_pattern))
@@ -127,13 +147,21 @@ def run():
 
     rand_cols = ColorRandom()
     
-    patterns = [pattern_floodfill, pattern_scatter, pattern_race]
+    patterns = [
+        pattern_floodfill,
+        pattern_scatter,
+        pattern_race,
+        pattern_horizflood,
+        pattern_horizsnakeflood,
+        pattern_snakeflood,
+    ]
     black = lambda: ColorConstant([0,0,0])
-    colors = [ColorRandom,
-              lambda: ColorConstant(rand_cols.get(None)),
-              lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None)),
-              lambda: ColorGlobalFade(rand_cols.get(None), rand_cols.get(None)),
-              lambda: ColorPixelFade(rand_cols.get(None), rand_cols.get(None)),
+    colors = [
+        ColorRandom,
+        lambda: ColorConstant(rand_cols.get(None)),
+        lambda: ColorChannelFade(rand_cols.get(None), rand_cols.get(None)),
+        lambda: ColorGlobalFade(rand_cols.get(None), rand_cols.get(None)),
+        lambda: ColorPixelFade(rand_cols.get(None), rand_cols.get(None)),
     ]
     last_col_template = None
     last_pattern_template = None
@@ -148,6 +176,8 @@ def run():
         if color_template == last_col_template:
             continue
         color = color_template()
+
+        print(color)
 
         for update in pattern:
             c = color.get(update)
