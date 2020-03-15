@@ -38,50 +38,34 @@ def lerp_cols(a, lhs, rhs):
     """blends between lhs and rhs"""
     return [lerp_i(a, lhs[0], rhs[0]), lerp_i(a, lhs[1], rhs[1]), lerp_i(a, lhs[2], rhs[2])]
 
-class ColorChannelFade:
+class ColorFade:
+    """handles fades"""
+    start_col = [0,0,0]
+    end_col = [1,1,1]
+    def __init__(self, start_col, end_col):
+        self.start_col = start_col
+        self.end_col = end_col
+
+    def get(self, coord):
+        return lerp_cols(self.get_alpha(coord), self.start_col, self.end_col)
+    
+    def __repr__(self):
+        return self.__class__.__name__ + " " + str(self.start_col) + " > " + str(self.end_col)
+        
+class ColorChannelFade(ColorFade):
     """fades between colours on one channel"""
-    start_col = [0,0,0]
-    end_col = [1,1,1]
-    def __init__(self, start_col, end_col):
-        self.start_col = start_col
-        self.end_col = end_col
-
-    def get(self, coord):
-        alpha = coord[1]/15.0
-        return lerp_cols(alpha, self.start_col, self.end_col)
+    def get_alpha(self, coord):
+        return coord[1]/15.0
     
-    def __repr__(self):
-        return "Channel Fade " + str(self.start_col) + " > " + str(self.end_col)
-    
-class ColorGlobalFade:
+class ColorGlobalFade(ColorFade):
     """fades across all pixels, chained end-to-end"""
-    start_col = [0,0,0]
-    end_col = [1,1,1]
-    def __init__(self, start_col, end_col):
-        self.start_col = start_col
-        self.end_col = end_col
-
-    def get(self, coord):
-        alpha = ((coord[0]-1)*16+coord[1])/63.0
-        return lerp_cols(alpha, self.start_col, self.end_col)
-
-    def __repr__(self):
-        return "Global Fade " + str(self.start_col) + " > " + str(self.end_col)
+    def get_alpha(self, coord):
+        return ((coord[0]-1)*16+coord[1])/63.0
     
-class ColorPixelFade:
+class ColorPixelFade(ColorFade):
     """fades between pixels on the same row"""
-    start_col = [0,0,0]
-    end_col = [1,1,1]
-    def __init__(self, start_col, end_col):
-        self.start_col = start_col
-        self.end_col = end_col
-
-    def get(self, coord):
-        alpha = (coord[0]-1)/3.0
-        return lerp_cols(alpha, self.start_col, self.end_col)
-    
-    def __repr__(self):
-        return "Pixel Fade " + str(self.start_col) + " > " + str(self.end_col)
+    def get_alpha(self, coord):
+        return (coord[0]-1)/3.0
     
 def pattern_race():
     fills = [0,0,0,0]
